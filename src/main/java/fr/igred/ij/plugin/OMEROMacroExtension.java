@@ -116,6 +116,8 @@ public class OMEROMacroExtension implements PlugIn, MacroExtension {
             newDescriptor("removeROIs", this, ARG_NUMBER, ARG_STRING + ARG_OPTIONAL),
             newDescriptor("getKeyValuePairs", this, ARG_STRING, ARG_NUMBER, ARG_STRING + ARG_OPTIONAL),
             newDescriptor("getValue", this, ARG_STRING, ARG_NUMBER, ARG_STRING, ARG_STRING + ARG_OPTIONAL),
+            newDescriptor("getClientPath", this, ARG_NUMBER),
+            newDescriptor("getSeries", this, ARG_NUMBER),
             newDescriptor("sudo", this, ARG_STRING),
             newDescriptor("endSudo", this),
             newDescriptor("disconnect", this),
@@ -1379,6 +1381,44 @@ public class OMEROMacroExtension implements PlugIn, MacroExtension {
 
 
     /**
+     * Returns the client path of an image.
+     *
+     * @param id The image ID on OMERO.
+     *
+     * @return The client path of the image.
+     */
+    public String getClientPath(long id) {
+        String clientPath = "";
+        try {
+            ImageWrapper image = client.getImage(id);
+            clientPath  = image.getOriginalPaths(client).get(0);
+        } catch (ServiceException | AccessException | ExecutionException e) {
+            IJ.error("Could not get image client path: " + e.getMessage());
+        }
+        return clientPath;
+    }
+
+
+    /**
+     * Returns the image serie index.
+     *
+     * @param id The image ID on OMERO.
+     *
+     * @return The serie index of the image.
+     */
+    public String getSeries(long id) {
+        String imageSeries = "";
+        try {
+            ImageWrapper image = client.getImage(id);
+            imageSeries = Integer.toString(image.getSeries());
+        } catch (ServiceException | AccessException | ExecutionException e) {
+            IJ.error("Could not get image series: " + e.getMessage());
+        }
+        return imageSeries;
+    }
+
+
+    /**
      * Disconnects from OMERO.
      */
     public void disconnect() {
@@ -1613,7 +1653,14 @@ public class OMEROMacroExtension implements PlugIn, MacroExtension {
                 String defaultValue = (String) args[3];
                 results = getValue(type, id, key, defaultValue);
                 break;
-
+            case "getClientPath":
+                id = ((Double) args[0]).longValue();
+                results = getClientPath(id);
+                break;
+            case "getSeries":
+                id = ((Double) args[0]).longValue();
+                results = getSeries(id);
+                break;
             case "sudo":
                 sudo((String) args[0]);
                 break;
